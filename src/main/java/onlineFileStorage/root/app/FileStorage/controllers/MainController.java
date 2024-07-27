@@ -1,5 +1,9 @@
 package onlineFileStorage.root.app.FileStorage.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import onlineFileStorage.root.app.FileStorage.handlers.exception.ExistingUsernameException;
 import onlineFileStorage.root.app.FileStorage.models.RoleEntity;
 import onlineFileStorage.root.app.FileStorage.models.UserEntity;
 import onlineFileStorage.root.app.FileStorage.repo.RoleRepository;
@@ -7,11 +11,11 @@ import onlineFileStorage.root.app.FileStorage.repo.UserRepository;
 import onlineFileStorage.root.app.FileStorage.securityConfigs.CustomService;
 import onlineFileStorage.root.app.FileStorage.securityConfigs.JwtGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.config.Task;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/client/user")
@@ -49,10 +52,16 @@ public class MainController {
 
 
 
+    @Operation(summary = "Registration",
+            parameters ={
+                        @Parameter(name = "username",description = "Username",schema = @Schema(type = "string")),
+                        @Parameter(name = "email",description = "User email",schema = @Schema(type = "string")),
+                        @Parameter(name = "password",description = "User password",schema = @Schema(type = "string"))})
     @PostMapping("register")
-    public String register(@RequestBody UserEntity entity){
+     public String register(@RequestBody UserEntity entity) throws InterruptedException {
+
         if (repository.existsByUsername(entity.getUsername())) {
-            throw new RuntimeException("Username is already taken!");
+            throw new ExistingUsernameException("Username is already taken!");
         }
         entity.setPassword(encoder.encode(entity.getPassword()));
         RoleEntity roles = roleRepository.findByRole("USER").get();
@@ -62,18 +71,19 @@ public class MainController {
 
         return "User was successful register !";
     }
-
+    @Operation(summary = "Log in",
+            description = "Log in account,that should contains in data base",
+            parameters ={
+                    @Parameter(name = "username",description = "Username",schema = @Schema(type = "string")),
+                    @Parameter(name = "email",description = "User email",schema = @Schema(type = "string")),
+                    @Parameter(name = "password",description = "User password",schema = @Schema(type = "string"))})
     @PostMapping("login")
     public String login(@RequestBody UserEntity entity){
-        UserDetails user = service.loadUserByUsername(entity.getUsername());
+         UserDetails user = service.loadUserByUsername(entity.getUsername());
         Authentication auth = manager.authenticate(
                 new UsernamePasswordAuthenticationToken(entity.getUsername(),entity.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(auth);
         String token = generator.generateToken(auth);
         return "User was successful login \n Authorization token: " + token;
     }
-
-
-
-
 }

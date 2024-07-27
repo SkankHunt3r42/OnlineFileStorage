@@ -1,5 +1,6 @@
 package onlineFileStorage.root.app.FileStorage.securityConfigs;
 
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -27,6 +28,18 @@ public class FilterChain {
                 config.requestMatchers(HttpMethod.GET,"/client/test/**").permitAll()
                         .requestMatchers(HttpMethod.POST,"/client/user/**").permitAll()
                         .requestMatchers(HttpMethod.GET,"/client/secured/test/**").authenticated()
+                        .requestMatchers(
+                                "/swagger-ui.html",
+                                "/swagger-ui/*",
+                                "/api/v1/auth/**",
+                                "/v2/api-docs" ,
+                                "/v3/api-docs" ,
+                                "/v3/api-docs/**" ,
+                                "/swagger-resources" ,
+                                "/swagger-resources/**" ,
+                                "/configuration/ui" ,
+                                "/configuration/security" ,
+                                "/webjars/**").permitAll()
 
                 )
                 .addFilterBefore(filter(), UsernamePasswordAuthenticationFilter.class);

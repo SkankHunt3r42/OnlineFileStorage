@@ -7,6 +7,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+import onlineFileStorage.root.app.FileStorage.handlers.exception.JwtProblemException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,6 +20,7 @@ import java.io.IOException;
 
 import static onlineFileStorage.root.app.FileStorage.securityConfigs.constants.SecurityConstants.*;
 
+@Slf4j
 @Component
 public class JwtCustomFilter extends OncePerRequestFilter {
     @Autowired
@@ -48,7 +51,7 @@ public class JwtCustomFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         } catch (JwtException e) {
-            throw new RuntimeException("Jwt is invalid, or expired");
+            throw new JwtProblemException("Jwt is invalid, or expired");
         }
         filterChain.doFilter(request,response);
 
